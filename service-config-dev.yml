@@ -1,9 +1,11 @@
 
+local-address: 192.168.7.109
+
 data-source-configs:
   fir-datasource:
     type: com.zaxxer.hikari.HikariDataSource
     data-config:
-      jdbc-url: jdbc:mysql://127.0.0.1:3306/firchat_fir?useSSL=false&characterEncoding=utf8
+      jdbc-url: jdbc:mysql://${local-address:127.0.0.1}:3306/firchat_fir?useSSL=false&characterEncoding=utf8
       username: root
       password: 123456
       driver-class-name: com.mysql.jdbc.Driver
@@ -17,14 +19,18 @@ data-source-configs:
 
 service:
   general:
+    # 如果测试环境放置于云服务器（即ws服务期望通过外网ip访问），则打开下一行注释（去掉#），并将ip改成您的IP
+    #external-address:120.78.4.155
+    single-websocket-address: ${service.general.external-address:${local-address}}
+    default-websocket-port: 8101
     redis-config:
       # 配置模式: single, cluster, elasticcache:
       mode: single
       # Redis节点地址列表:
       nodes:
-        - redis://127.0.0.1:6379
+        - redis://${local-address:127.0.0.1}:6379
     lock-zookeeper-config:
-      zookeeperAddr: 127.0.0.1:2181
+      zookeeperAddr: ${local-address:127.0.0.1}:2181
       zkpTimeout: 10000
     db-config:
       redisKey: ${REDIS_KEY:}
@@ -37,7 +43,7 @@ service:
     data-source-config-suffix: data-config
   micro-service:
     common:
-      registry-address: zookeeper://192.168.7.101:2181
+      registry-address: zookeeper://${local-address:127.0.0.1}:2181
     simple-other-service:
       application-name: simple-other-service
       protocol-name: dubbo
@@ -45,11 +51,18 @@ service:
       scan: org.dragonli.service.general.other.OtherService
       group: ${MICRO_SERVICE_GROUP:}
       http-port: ${MICRO_SERVICE_HTTP_PORT:7094}
-      zookeeper-address: 127.0.0.1:2181
+      zookeeper-address: ${local-address:127.0.0.1}:2181
       zookeeper-timeout: 3000
       zookeeper-base-key: /service/datas/lock/base
       lock-timeout: 1000
     simple-netty-service:
+      #效果相当于：192.168.7.109:8101;ws://192.168.7.109:8101
+      # 下行示例的是开发环境的配置方式。如果是生产环境的配置，建议直接配置内网站地址，如：
+        #your-local-address1:8101;wss://ws1.yourproject.domain.com:80 your-local-address2:8101;wss://ws2.yourproject.domain.com:80其中
+        # ws1.yourproject.domain.com和ws1.yourproject.domain.com均指向您的nginx地址，nginx识别80端口并分别反向代理至your-local-address1:8101和your-local-address2:8101
+        # wss的证书(即ssl证书）配置在nginx上即可
+        # nginx反射代理websocket协议的文献遍网皆是，此处不赘述
+      configsStr: ${NETTY_CONFIG_STR:${local-address}:${service.general.default-websocket-port};ws://${service.general.single-websocket-address}:${service.general.default-websocket-port}}
       application-name: simple-netty-service
       protocol-name: dubbo
       protocol-port: ${MICRO_SERVICE_PORT:30809}
@@ -57,7 +70,6 @@ service:
       http-port: ${MICRO_SERVICE_HTTP_PORT:7096}
       group: ${MICRO_SERVICE_GROUP:}
       onlinePrefix: ${NETTY_ONLINE_ZOOKEEPER_PATH_PREFIX:/service/datas/websocket/online:}
-      configsStr: ${NETTY_CONFIG_STR:127.0.0.1:8101;ws://websocket-dev-address:8101}
       redisonlineKey: /service/datas/websocket/online
       privatekey: ${CONFIG_PRIVATE_KEY:draonli@2019}
     simple-db-service:
