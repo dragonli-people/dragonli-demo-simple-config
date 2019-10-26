@@ -10,7 +10,7 @@ db1:
   username: root
   # 生产环境建议修改
   passwd: 123456
-db1:
+db2:
   address: ${local-address}
   db-name: db2
   # 生产环境建议修改
