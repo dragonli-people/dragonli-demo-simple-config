@@ -1,13 +1,44 @@
 
 local-address: 192.168.7.109
+zookeeper-address: ${local-address}
+redis-address: ${local-address}
+# 更多数据源可继续罗列
+db1:
+  address: ${local-address}
+  db-name: db1
+  # 生产环境建议修改
+  username: root
+  # 生产环境建议修改
+  passwd: 123456
+db1:
+  address: ${local-address}
+  db-name: db2
+  # 生产环境建议修改
+  username: root
+  # 生产环境建议修改
+  passwd: 123456
 
 data-source-configs:
-  fir-datasource:
+  db1:
     type: com.zaxxer.hikari.HikariDataSource
     data-config:
-      jdbc-url: jdbc:mysql://${local-address:127.0.0.1}:3306/firchat_fir?useSSL=false&characterEncoding=utf8
-      username: root
-      password: 123456
+      jdbc-url: jdbc:mysql://${db1.address:127.0.0.1}:3306/${db1.db-name}?useSSL=false&characterEncoding=utf8
+      username: ${db1.username}
+      password: ${db1.passwd}
+      driver-class-name: com.mysql.jdbc.Driver
+      hikari:
+        pool-name: HikariCP
+        auto-commit: false
+        connection-timeout: 5000
+        max-lifetime: 600000
+        maximum-pool-size: 50
+        minimum-idle: 5
+  db2:
+    type: com.zaxxer.hikari.HikariDataSource
+    data-config:
+      jdbc-url: jdbc:mysql://${db2.address:127.0.0.1}:3306/${db2.db-name}?useSSL=false&characterEncoding=utf8
+      username: ${db2.username}
+      password: ${db2.passwd}
       driver-class-name: com.mysql.jdbc.Driver
       hikari:
         pool-name: HikariCP
@@ -28,9 +59,9 @@ service:
       mode: single
       # Redis节点地址列表:
       nodes:
-        - redis://${local-address:127.0.0.1}:6379
+        - redis://${redis-address:127.0.0.1}:6379
     lock-zookeeper-config:
-      zookeeperAddr: ${local-address:127.0.0.1}:2181
+      zookeeperAddr: ${zookeeper-address:127.0.0.1}:2181
       zkpTimeout: 10000
     db-config:
       redisKey: ${REDIS_KEY:}
@@ -43,7 +74,7 @@ service:
     data-source-config-suffix: data-config
   micro-service:
     common:
-      registry-address: zookeeper://${local-address:127.0.0.1}:2181
+      registry-address: zookeeper://${zookeeper-address:127.0.0.1}:2181
     simple-other-service:
       application-name: simple-other-service
       protocol-name: dubbo
