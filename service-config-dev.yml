@@ -4,7 +4,7 @@ zookeeper-address: ${local-address}
 redis-address: ${local-address}
 default-redis-port: 6379
 
-default-dubbo-consumer-proxy-port: 8089
+default-dubbo-consumer-proxy-port: 7089
 default-dubbo-consumer-proxy-address: ${local-address}:${default-dubbo-consumer-proxy-port}
 # 更多数据源可继续罗列
 db1:
