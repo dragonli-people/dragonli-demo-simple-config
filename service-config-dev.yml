@@ -86,6 +86,7 @@ service:
       zookeeper-timeout: 3000
       zookeeper-base-key: /service/datas/lock/base
       lock-timeout: 1000
+      authPrivatekey: ${AUTH_PRIVATE_KEY:draonli@2019}
     simple-netty-service:
       #效果相当于：192.168.7.109:8101;ws://192.168.7.109:8101
       # 下行示例的是开发环境的配置方式。如果是生产环境的配置，建议直接配置内网站地址，如：
